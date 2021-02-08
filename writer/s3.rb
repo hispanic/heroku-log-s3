@@ -10,7 +10,7 @@ class Writer < WriterBase
   }).buckets[ENV.fetch('S3_BUCKET')].objects
 
   def stream_to(filepath)
-    @logger.info "begin #{filepath}"
+    @logger.info "begin s3 #{filepath}"
     S3_BUCKET_OBJECTS[filepath].write(
       @io,
       estimated_content_length: 1 # low-ball estimate; so we can close buffer by returning nil
