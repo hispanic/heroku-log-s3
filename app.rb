@@ -26,9 +26,9 @@ class App
     end
 
     lines.each do |line|
+      @logger.info "line = #{line}"
       msg = line[:msg]
-      @logger.info "foo"
-      @logger.info msg
+      @logger.info "msg = #{msg}"
       next unless msg.start_with?(PREFIX)
       Writer.instance.write([line[:ts], msg[PREFIX_LENGTH..-1]].join(' ').strip) # WRITER_LIB
     end
