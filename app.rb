@@ -18,6 +18,7 @@ class App
   end
 
   def call(env)
+    @logger.info "in call"
     lines = if LOG_REQUEST_URI
       [{ msg: env['REQUEST_URI'], ts: '' }]
     else
