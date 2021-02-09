@@ -21,13 +21,19 @@ class App
     lines = if LOG_REQUEST_URI
       [{ msg: env['REQUEST_URI'], ts: '' }]
     else
-      HerokuLogParser.parse(env['rack.input'].read).collect { |m| { msg: m[:message], ts: m[:emitted_at].strftime('%Y-%m-%dT%H:%M:%S.%L%z') } }
+      HerokuLogParser.parse(env['rack.input'].read).collect { |m| { 
+        msg: m[:message], 
+        ts: m[:emitted_at].strftime('%Y-%m-%dT%H:%M:%S.%L%z'), 
+        procId: m[:proc_id], 
+        appName: m[:appname] 
+      } }
     end
 
     lines.each do |line|
+      # @logger.info "line = #{line}"
       msg = line[:msg]
       next unless msg.start_with?(PREFIX)
-      Writer.instance.write([line[:ts], msg[PREFIX_LENGTH..-1]].join(' ').strip) # WRITER_LIB
+      Writer.instance.write([line[:ts], line[:appName], line[:procId], msg[PREFIX_LENGTH..-1]].join(' ').strip) # WRITER_LIB
     end
 
   rescue Exception
