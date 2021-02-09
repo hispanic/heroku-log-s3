@@ -18,22 +18,31 @@ class App
   end
 
   def call(env)
-    @logger.info "in call"
     lines = if LOG_REQUEST_URI
       [{ msg: env['REQUEST_URI'], ts: '' }]
     else
       #HerokuLogParser.parse(env['rack.input'].read).collect { |m| { msg: m[:message], ts: m[:emitted_at].strftime('%Y-%m-%dT%H:%M:%S.%L%z') } }
+      # 2021-02-08T23:44:58.245+0000 at=info method=GET path="/" host=sw-v3-staging.herokuapp.com request_id=f0333f93-441b-4f95-abbd-3ff1bff74233 fwd="141.157.66.153" dyno=web.1 connect=1ms service=12ms status=200 bytes=345 protocol=https
+
+      # no implicit conversion of Symbol into Integer
       #HerokuLogParser.parse(env['rack.input'].read).collect {|m| "#{m[:emitted_at]} #{m[:proc_id]} #{m[:msg_id]} #{m[:message]}" }
-      HerokuLogParser.parse(env['rack.input'].read).collect {|m| "#{m[:emitted_at]} #{m[:proc_id]} #{m[:message]}" }
+
+      # HerokuLogParser.parse(env['rack.input'].read).collect {|m| "#{m[:emitted_at]} #{m[:proc_id]} #{m[:message]}" }
+      # 2021-02-09 00:18:48 UTC router at=info method=GET path="/" host=sw-v3-staging.herokuapp.com request_id=30163397-f8f0-448b-89c7-c0af88c60ccc fwd="141.157.66.153" dyno=web.1 connect=1ms service=3ms status=200 bytes=345 protocol=https
+
+      HerokuLogParser.parse(env['rack.input'].read).collect { |m| { 
+        msg: m[:message], 
+        ts: m[:emitted_at].strftime('%Y-%m-%dT%H:%M:%S.%L%z'), 
+        procId: m[:proc_id], 
+        appName: m[:appName] 
+      } }
     end
 
     lines.each do |line|
-      @logger.info "line = #{line}"
+      # @logger.info "line = #{line}"
       msg = line[:msg]
-      foo = msg.start_with?(PREFIX)
-      @logger.info "foo = #{foo}"
       next unless msg.start_with?(PREFIX)
-      Writer.instance.write([line[:ts], msg[PREFIX_LENGTH..-1]].join(' ').strip) # WRITER_LIB
+      Writer.instance.write([line[:ts], line[:appName], line[:procId], msg[PREFIX_LENGTH..-1]].join(' ').strip) # WRITER_LIB
     end
 
   rescue Exception
