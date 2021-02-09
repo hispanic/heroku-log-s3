@@ -22,7 +22,7 @@ class App
     lines = if LOG_REQUEST_URI
       [{ msg: env['REQUEST_URI'], ts: '' }]
     else
-      HerokuLogParser.parse(env['rack.input'].read).collect { |m| { msg: m[:message], ts: m[:emitted_at].strftime('%Y-%m-%dT%H:%M:%S.%L%z') } }
+      HerokuLogParser.parse(env['rack.input'].read).collect {|m| "#{m[:emitted_at]} #{m[:proc_id]} #{m[:msg_id]} #{m[:message]}" }
     end
 
     lines.each do |line|
